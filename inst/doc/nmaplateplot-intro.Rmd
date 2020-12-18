@@ -1,0 +1,319 @@
+---
+title: "An Introduction to the nmaplateplot package"
+author: "Zhenxun Wang"
+vignette: >
+  %\VignetteIndexEntry{An Introduction to the nmaplateplot package}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    theme: united
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE)
+knitr::opts_chunk$set(out.width = "1200px", dpi = 300, fig.height = 6, fig.width = 10,
+                      dev = "svglite", fig.align = "center",
+                      out.extra = 'style="display:block; margin: auto"')
+```
+
+# Introduction
+
+The **nmaplateplot** package is a graphical display of results from network meta-analysis (NMA). It is suitable for outcomes like odds ratio (OR), risk ratio (RR), risk difference (RD) and standardized mean difference (SMD). It also has an option to visually display and compare the surface under the cumulative ranking (SUCRA) of different treatments. Moreover, nmaplateplot is good at details, including choosing colors, text size, circle size, layout and adding title.
+
+## Quick example: Efficacy and acceptability of 12 Antidepressants 
+We use a dataset to quickly demonstrate the plate plot.
+
+The **ad12.eff.acc** dataset contains the point estimates (posterior medians), interval estimates (95\% credible intervals), p-values of odds ratios (ORs) for both efficacy and acceptability of 12 antidepressants based on arm-based network meta-analysis.
+
+```{r}
+library(nmaplateplot)
+library(svglite)
+data("ad12.eff.acc")
+plateplot(ad12.eff.acc, design_method = c("circle", "circle"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+Let us explain the components of the plate plot:
+
+> The upper diagonal part graphically presents ORs for efficacy, while the lower diagonal part graphically presents ORs for acceptability. 
+
+>Each cell in off-diagonal part contains 2 (for p > 0.05) or 3 (for p < 0.05) concentric circles with white circle (inner circle) representing lower bound of interval estimates if result is significant, grey circle (middle circle) representing point estimates, and outer circle with varying colors representing upper bound of interval estimates. The varying colors
+are associated with p-values shown in the color bar. The circles' size is positively associated with (point/interval) estimates. 
+
+>For example: 1) the plate with (blue/grey/white) color in the **1st row and 12th column** cell means MIR is significantly more effective than REB in terms of response rate (efficacy); 2) the plate with (red/grey) color in the **2nd row and 1st column** cell means MIR is less acceptable (higher dropout rate) than ESC, though this effect is not statistically significant.
+
+>The diagonal texts are names of 12 antidepressant drugs with 2 numbers in each cell standing for SUCRA(\%) for efficacy and acceptability of these treatments. The background colors in diagonal part are associated with SUCRA values as shown in the color bar.
+
+In addition to the plate plot which graphically and intuitively displays the NMA results, the package can directly print the point estimates with 95\% credible intervals.
+
+```{r}
+# option design_method controls whether you want upper and lower diagonal parts to display "text" or "circle" respectively.
+plateplot(ad12.eff.acc, design_method = c("text", "text"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+> The estimates with p-value < 0.05 are underscored. Symbols "a", "b" and "c" are added to estimates with p-value < 0.05, < 0.01 and < 0.001 respectively. The varying colors of text
+are associated with p-values shown in the color bar.
+
+> For example: 1) 1.91 (1.41, 2.56) in the **1st row and 12th column** cell prints odds of efficacy in the upper-left defined treatment (MIR) compared with odds of efficacy in the lower-right defined treatment (REB); 2) 1.27 (0.98, 1.66) in the **2nd row and 1st column** cell prints odds of acceptability in the upper-left defined treatment (MIR) compared with odds of acceptability in the lower-right defined treatment (ESC).
+
+## Input dataset
+
+The input dataset must be a list containing at least 5 data frames named: **Point_estimates**, **Interval_estimates_LB**, **Interval_estimates_UB**, **Pvalues**, and **Treatment_specific_values**.
+
+```{r}
+nma_res_minimum <- ad12.eff.acc
+nma_res_minimum$Treatment_specific_values$Value_Upper <- NULL
+nma_res_minimum$Treatment_specific_values$Value_Lower <- NULL
+# This is the minimum input for the plateplot function
+nma_res_minimum$Treatment_specific_values
+round(nma_res_minimum$Point_estimates,2)
+round(nma_res_minimum$Interval_estimates_LB,2)
+round(nma_res_minimum$Interval_estimates_UB,2)
+round(nma_res_minimum$Pvalues,3)
+# The text output based on minimum input
+plateplot(nma_res_minimum, design_method = c("text", "text"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+You may have noticed the inconsistency between the input dataset and the plot: e.g. the values in the **2nd row and 1st column** cell of the plot is 1.12 (0.87, 1.46), while according to the input dataset, it seems to be 0.89 (0.68, 1.15). The reason is simple: we use two different types of layouts for input and output respectively. 
+
+### Two types of layouts: row-column and upper-left lower-right
+
+The dataset you input should follow **row-column (rc)** layout, which means odds ratio in each cell should stand for odds in the row defined treatment compared with odds in the column defined treatment. This kind of layout is much easier for you to construct input dataset. If you want the output plot to follow this type of layout as well, you can use options ***transform_rc_ullr_boolean = FALSE***.
+
+```{r}
+plateplot(nma_res_minimum, design_method = c("text", "text"),
+             transform_rc_ullr_boolean = FALSE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+Now you can see the consistency between the input dataset and the plot. If you want choose another layout **upper-left lower-right (ullr)** for your output (which is the default one and is generally more suitable), you can either choose the default one or use options ***transform_rc_ullr_boolean = TRUE***. This type of layout means that odds ratio should stand for odds in the upper-left defined treatment compared with odds in the lower-right defined treatment.
+
+```{r}
+plateplot(nma_res_minimum, design_method = c("text", "text"),
+             transform_rc_ullr_boolean = TRUE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+### SUCRA values
+
+On top of the minimum input, you can make the plot to graphically display SUCRA values. 
+
+```{r}
+# only show SUCRA for lower diagonal part
+nma_res_SUCRA_LD <- ad12.eff.acc
+nma_res_SUCRA_LD$Treatment_specific_values$Value_Lower <- NULL
+plateplot(nma_res_SUCRA_LD, design_method = c("circle", "circle"),
+             transform_rc_ullr_boolean = TRUE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+
+# only show SUCRA for upper diagonal part
+nma_res_SUCRA_UD <- ad12.eff.acc
+nma_res_SUCRA_UD$Treatment_specific_values$Value_Upper <- NULL
+plateplot(nma_res_SUCRA_UD, design_method = c("circle", "circle"),
+             transform_rc_ullr_boolean = TRUE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+
+# show both, but they are different
+nma_res_SUCRA_Bothd <- ad12.eff.acc
+plateplot(nma_res_SUCRA_Bothd, design_method = c("circle", "circle"),
+             transform_rc_ullr_boolean = TRUE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+
+# show both and they are same
+nma_res_SUCRA_Boths <- ad12.eff.acc
+nma_res_SUCRA_Boths$Treatment_specific_values$Value_Lower <- 
+  nma_res_SUCRA_Boths$Treatment_specific_values$Value_Upper
+plateplot(nma_res_SUCRA_Boths, design_method = c("circle", "circle"),
+             transform_rc_ullr_boolean = TRUE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Save the plot
+
+It is recommended to save the plot by setting height at least 6 inches, and dpi at least 600. In addition, we suggested using "pdf", "tiff", or "svg" devices to create graphs that can be included in the Latex, Word, or HTML files respectively.
+
+```{r eval=FALSE}
+nma_res_minimum <- plateplot(nma_res_minimum, design_method = c("text", "text"),
+                                upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+ggsave("nma_res_minimum.pdf", plot = nma_res_minimum, device = "pdf",
+       width = 10, height = 6, dpi = 600)
+ggsave("nma_res_minimum.tiff", plot = nma_res_minimum, device = "tiff", compression = "lzw",
+       width = 10, height = 6, dpi = 600)
+ggsave("nma_res_minimum.svg", plot = nma_res_minimum, device = "svg",
+       width = 10, height = 6, dpi = 600)
+```
+
+# Plotting parameters
+
+## Different types of outcomes
+
+We use two example datasets to show the settings for the function to handle different types of outcomes. The first one is **ad12.eff.acc**, which contains results of odds ratios for both efficacy (upper diagonal part) and acceptability (lower diagonal part) of 12 antidepressants.  The second one (**ad12.rr.rd**) contains results of risk ratios (upper diagonal part) and risk differences (lower diagonal part) for efficacy of 12 antidepressants.
+
+> The first option needs to be considered is ***lower_better***. An array of two logical values for upper and lower diagonal parts respectively. TRUE indicates lower estimates implying better treatment, and vice versa. Hence, we should choose FALSE for efficacy and TRUE for acceptability.
+
+> The second option is ***null_value_zero***. An array of two logical values for upper and lower diagonal parts respectively. TRUE indicates the neutral value of estimates is zero, and FALSE indicates the neutral value of estimates is one. Obviously, we should choose FALSE for risk ratio and odds ratio, and choose TRUE for risk difference and standardized mean difference. 
+
+```{r}
+data("ad12.rr.rd")
+plateplot(ad12.rr.rd,
+             null_value_zero = c(FALSE, TRUE), lower_better = c(FALSE, FALSE),
+             design_method = c("text", "text"), 
+             upper_diagonal_name = "Efficacy: Risk ratio", lower_diagonal_name = "Efficacy: Risk difference")
+
+data("ad12.eff.acc")
+plateplot(ad12.eff.acc, 
+             null_value_zero = c(FALSE, FALSE), lower_better = c(FALSE, TRUE),
+             design_method = c("text", "text"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Ordering treatments
+
+Although the function will automatically order the treatments based on SUCRA. You can manually control that by specifying the order explicitly.
+
+```{r}
+data("ad12.eff.acc")
+ad12.eff.acc$Treatment_specific_values$Order <- c(1:6,12:7)
+plateplot(ad12.eff.acc, 
+             null_value_zero = c(FALSE, FALSE), lower_better = c(FALSE, TRUE),
+             design_method = c("circle", "circle"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Controlling symbols
+
+The function will give symbols "a", "b" and "c" based on p-values (< 0.05, < 0.01, and < 0.001 respectively). You can manually control them too. You need to use the alphabet instead of real symbols like '*' and '&'.
+
+```{r}
+data("ad12.eff.acc")
+ad12.eff.acc$Symbol_indicators <- as.data.frame(matrix(NA, nrow = 12, ncol = 12))
+plateplot(ad12.eff.acc, 
+             null_value_zero = c(FALSE, FALSE), lower_better = c(FALSE, TRUE),
+             design_method = c("text", "text"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Changing plate (circle) size
+
+You can specify the minimum (and maximum) circle size of upper and lower diagonal parts respectively by ***plate_circle_minsize*** and ***plate_circle_maxsize*** . Moreover, if you believe upper and lower diagonal should have same function to adjust the circle size, you can set ***plate_circle_samesize = TRUE***.
+
+```{r}
+data("ad12.eff.acc")
+plateplot(ad12.eff.acc, design_method = c("circle", "circle"), 
+             plate_circle_minsize = c(1.0, 1.0), plate_circle_maxsize = c(8.0, 8.0), 
+             plate_circle_samesize = FALSE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Changing text size
+
+One option only (***text_size***) controls all the text size in the plot.
+
+```{r}
+plateplot(ad12.rr.rd,
+             null_value_zero = c(FALSE, TRUE), lower_better = c(FALSE, FALSE),
+             design_method = c("text", "text"), text_size = 2.0,
+             upper_diagonal_name = "Efficacy: Risk ratio", lower_diagonal_name = "Efficacy: Risk difference")
+```
+
+## Changing text to the bold face 
+
+One option only (***bold***) controls the bold face in the text plot. The default is FALSE.
+
+```{r}
+plateplot(ad12.rr.rd,
+             null_value_zero = c(FALSE, TRUE), lower_better = c(FALSE, FALSE),
+             design_method = c("text", "text"), text_size = 2.8, bold = TRUE,
+             upper_diagonal_name = "Efficacy: Risk ratio", lower_diagonal_name = "Efficacy: Risk difference")
+```
+
+
+## Abbreviating long treatment names
+
+Use ***max_substring*** to control the length of treatment names.
+
+```{r}
+plateplot(ad12.eff.acc, design_method = c("circle", "circle"), max_substring = 2,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Changing colors to indicate treatment rankings
+
+***diagonal_color***: an array of 2 color names to define colors for SUCRA=0 and SUCRA=1.
+
+```{r}
+plateplot(ad12.eff.acc, design_method = c("circle", "circle"), 
+             diagonal_color = c("white", "green3"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Changing colors for texts and plate circles
+
+***text_and_circle_color***: an array of 5 color names (A, B, C, D, E). "(A, B, C)" is used to define varying colors (based on p-values) for texts or circles represent upper bound of interval estimate. "D" is color for circles represent point estimate. "E" is color for circles represent lower bound of interval estimate.
+
+```{r}
+plateplot(ad12.eff.acc, design_method = c("circle", "circle"), 
+             text_and_circle_color = c("blue", "white", "red", "grey70", "black"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+plateplot(ad12.eff.acc, design_method = c("text", "text"), 
+             text_and_circle_color = c("red", "black", "blue"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Changing background colors for upper and lower diagonal parts
+
+***offdiagonal_color***: an array of 2 colors for upper and lower diagonal parts.
+
+```{r}
+plateplot(ad12.eff.acc, design_method = c("circle", "circle"), 
+             offdiagonal_color = c("cornsilk1", "white"),
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+## Adding the title
+
+```{r}
+plateplot(ad12.eff.acc, design_method = c("circle", "circle"), 
+             title = "Efficacy and acceptability of 12 antidepressants",
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
+
+# Additional examples
+
+## NMA results with missing values
+
+This example dataset contains results of odds ratios for efficacy of 12 antidepressants based on arm-based NMA (upper diagonal part) and pairwise meta-analysis (lower diagonal part).
+
+```{r}
+data("ad12.pma.nma")
+plateplot(ad12.pma.nma, design_method = c("circle", "circle"), 
+             plate_circle_minsize = c(2, 2), plate_circle_maxsize = c(30, 30), 
+             plate_circle_samesize = TRUE,
+             upper_diagonal_name = "Network meta-analysis", lower_diagonal_name = "Pairwise meta-analysis")
+plateplot(ad12.pma.nma, design_method = c("circle", "text"), 
+             upper_diagonal_name = "Network meta-analysis", lower_diagonal_name = "Pairwise meta-analysis")
+```
+
+
+
+## Large NMA results (number of treatments is 22)
+
+This example dataset contains results of odds ratios for efficacy (upper diagonal part) and acceptability (lower diagonal part) of 21 antidepressants and placebo.
+
+```{r}
+data("ad22")
+plateplot(ad22, design_method = c("circle", "circle"), 
+             plate_circle_minsize = c(1.5, 1.5), plate_circle_maxsize = c(7, 7), 
+             text_size = 1.5, plate_circle_samesize = FALSE,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+
+plateplot(ad22, design_method = c("text", "text"), text_size = 1.5,
+             upper_diagonal_name = "Efficacy", lower_diagonal_name = "Acceptability")
+```
