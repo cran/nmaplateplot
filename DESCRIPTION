@@ -1,8 +1,8 @@
 Package: nmaplateplot
 Type: Package
 Title: The Plate Plot for Network Meta-Analysis Results
-Version: 1.0.0
-Date: 2020-12-22
+Version: 1.0.1
+Date: 2021-05-24
 Authors@R: c(
   person("Zhenxun", "Wang", email = "wang6795@umn.edu", role = c("aut", "cre")),
   person("Lifeng", "Lin", email = "llin4@fsu.edu", role = "ctb"),
@@ -29,5 +29,5 @@ Author: Zhenxun Wang [aut, cre],
   Shanshan Zhao [ctb],
   Haitao Chu [ctb]
 Repository: CRAN
-Date/Publication: 2020-12-18 10:20:02 UTC
-Packaged: 2020-12-16 23:34:50 UTC; zhenx
+Date/Publication: 2021-05-27 04:10:02 UTC
+Packaged: 2021-05-24 22:43:41 UTC; zhenx

@@ -162,9 +162,9 @@ plateplot <- function(nma_result,
   ## automatically create the order
   if(is.null(Results$Treatment_specific_values$Order)){
     if(!is.null(Results$Treatment_specific_values$Value_Upper)){
-      Results$Treatment_specific_values$Order <- rank(-Results$Treatment_specific_values$Value_Upper)
+      Results$Treatment_specific_values$Order <- rank(-Results$Treatment_specific_values$Value_Upper, ties.method = "first")
     }else if(!is.null(Results$Treatment_specific_values$Value_Lower)){
-      Results$Treatment_specific_values$Order <- rank(-Results$Treatment_specific_values$Value_Lower)
+      Results$Treatment_specific_values$Order <- rank(-Results$Treatment_specific_values$Value_Lower, ties.method = "first")
     }else{
       Results$Treatment_specific_values$Order <- c(1:ntrt)
     }
@@ -271,7 +271,7 @@ plateplot <- function(nma_result,
     )
     diagonal_text_abbr <- merge(diagonal_text_abbr_values, diagonal_text_abbr_position, by = c("id"))
     diagonal_text_abbr$text <- paste0(diagonal_text_abbr$text, "\n",
-                                      format(diagonal_text_abbr$value * 100, digits = 0, nsmall = 0))
+                                      round(diagonal_text_abbr$value * 100))
     diagonal_type <- 2
 
   }else if(!is.null(Results$Treatment_specific_values$Value_Upper) &
@@ -306,7 +306,7 @@ plateplot <- function(nma_result,
     )
     diagonal_text_abbr <- merge(diagonal_text_abbr_values, diagonal_text_abbr_position, by = c("id"))
     diagonal_text_abbr$text <- paste0(diagonal_text_abbr$text, "\n",
-                                      format(diagonal_text_abbr$value * 100, digits = 0, nsmall = 0))
+                                      round(diagonal_text_abbr$value * 100))
     diagonal_type <- 2
 
 
@@ -346,7 +346,7 @@ plateplot <- function(nma_result,
     # Diagonal values (Upper poly)
     diagonal_text_upper_values <- Results$Treatment_specific_values[, c("Value_Upper", "Order")]
     colnames(diagonal_text_upper_values) <- c("values", "id")
-    diagonal_text_upper_values$values <- format(diagonal_text_upper_values$values * 100, digits = 0, nsmall = 0)
+    diagonal_text_upper_values$values <- round(diagonal_text_upper_values$values * 100)
     diagonal_text_upper_position <- data.frame(
       id = c(1:ntrt),
       x = seq(from = 0.8, to = ntrt-0.2, by = 1),
@@ -356,7 +356,7 @@ plateplot <- function(nma_result,
     # Diagonal values (Lower poly)
     diagonal_text_lower_values <- Results$Treatment_specific_values[, c("Value_Lower", "Order")]
     colnames(diagonal_text_lower_values) <- c("values", "id")
-    diagonal_text_lower_values$values <- format(diagonal_text_lower_values$values * 100, digits = 0, nsmall = 0)
+    diagonal_text_lower_values$values <- round(diagonal_text_lower_values$values * 100)
     diagonal_text_lower_position <- data.frame(
       id = c(1:ntrt),
       x = seq(from = 0.2, to = ntrt-0.8, by = 1),
@@ -396,7 +396,7 @@ plateplot <- function(nma_result,
     )
     diagonal_text_abbr <- merge(diagonal_text_abbr_values, diagonal_text_abbr_position, by = c("id"))
     diagonal_text_abbr$text <- paste0(diagonal_text_abbr$text, "\n",
-                                      format(diagonal_text_abbr$value * 100, digits = 0, nsmall = 0))
+                                      round(diagonal_text_abbr$value * 100))
     diagonal_type <- 2
   }
 

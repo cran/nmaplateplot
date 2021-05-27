@@ -1,6 +1,7 @@
-332223863c88f1a8e723296ea998d024 *DESCRIPTION
+7b89357029d078947bdbf08fe70d6a77 *DESCRIPTION
 df390c53434517b304ac5db487184641 *NAMESPACE
-3d9df2d0bdc0774b675e891b7047c722 *R/nmaplateplot.R
+3b23d8f8560fe2a762d101ae4f891942 *NEWS.md
+9223c1b4a02452c1b50ae6810f8ddc68 *R/nmaplateplot.R
 bcda401b25a07cdea14e089943a7c2ba *R/pe_size_conversion.R
 3c26eeb585c6b1a9e56d81b102ea2fad *R/pe_text_conversion.R
 f1d86168748e2838e27b7851004aee3e *R/pvalue_color_conversion.R
@@ -13,7 +14,7 @@ faba768d2f338afd409dcced779e8ccc *data/ad12.pma.nma.rda
 884646f5de72e68ebaa4ad8fa5f245ee *data/ad22.rda
 cf29f848511c82e5997bdb5748dae1fe *inst/doc/nmaplateplot-intro.R
 9aa6f0c86348018cd35c5180e576f03f *inst/doc/nmaplateplot-intro.Rmd
-61d37fe0136bd8cffba03a057f32ab36 *inst/doc/nmaplateplot-intro.html
+2eb8986494f2f6ee4098c49a494bc840 *inst/doc/nmaplateplot-intro.html
 78702b3a899ce80e7d9bd240aa824f15 *man/ad12.eff.acc.Rd
 e203fbbb8e8c8318bd3294014439a928 *man/ad12.pma.nma.Rd
 5b6494da5f124c030559aa3527f3626f *man/ad12.rr.rd.Rd
